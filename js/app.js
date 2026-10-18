@@ -216,11 +216,6 @@
     if (media().currentTime > 3) media().currentTime = 0;
     else loadTrack(index - 1, { play: true });
   };
-  const seekBy = (sec) => {
-    const m = media();
-    if (!isFinite(m.duration)) return;
-    m.currentTime = Math.max(0, Math.min(m.duration, m.currentTime + sec));
-  };
 
   function updatePlayUI() {
     const playing = !media().paused;
@@ -357,8 +352,8 @@
     set("stop", () => { pause(); media().currentTime = 0; });
     set("previoustrack", prev);
     set("nexttrack", next);
-    set("seekbackward", (d) => seekBy(-((d && d.seekOffset) || 10)));
-    set("seekforward", (d) => seekBy((d && d.seekOffset) || 10));
+    // 10秒送り戻し（seekbackward/seekforward）は登録しない。iOS ではこれがあると
+    // ロック画面のボタンが「前後の曲」ではなく「10秒送り戻し」になってしまうため
     set("seekto", (d) => {
       const m = media();
       if (d.fastSeek && "fastSeek" in m) m.fastSeek(d.seekTime);
