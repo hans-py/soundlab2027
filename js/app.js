@@ -113,7 +113,6 @@
 
   /* ---------------- 静的な部分の描画 ---------------- */
   $("event").textContent = SITE.event;
-  $("circle").textContent = SITE.circle;
   $("copyright").textContent = SITE.copyright;
   $("notice").textContent = SITE.notice;
 
@@ -459,7 +458,9 @@
     const MIN = 1400; // 最短で見せる時間
     const MAX = 6000; // どんなに遅くてもここで開く
     const numEl = $("loader-num");
-    const barEl = $("loader-bar");
+    const litEl = $("loader-lit");
+    // 明るいロゴを左から見せる（脈拍の線が進捗バーになる）
+    const setLit = (ratio) => { litEl.style.clipPath = "inset(0 " + (100 - ratio * 100) + "% 0 0)"; };
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const done = { dom: true, fonts: false, art: false };
     const real = () => 0.15 + (done.fonts ? 0.35 : 0) + (done.art ? 0.5 : 0);
@@ -484,7 +485,7 @@
       left = true;
       clearInterval(timer);
       numEl.textContent = "100%";
-      barEl.style.width = "100%";
+      setLit(1);
       loader.classList.add("is-leaving");
       if (reduce) return setTimeout(finish, 300);
       setTimeout(() => loader.classList.add("is-open"), 520);
@@ -502,7 +503,7 @@
         if (shown > 0.995 || now - reachedAt > 300) return leave();
       }
       numEl.textContent = Math.round(shown * 100) + "%";
-      barEl.style.width = shown * 100 + "%";
+      setLit(shown);
     };
     // rAF ではなくタイマーで回す（描画が間引かれる環境でも進捗が止まらないように）
     timer = setInterval(() => tick(performance.now()), 33);
