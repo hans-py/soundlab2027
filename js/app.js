@@ -92,6 +92,10 @@
   const tabSong = $("tab-song");
   const tabMv = $("tab-mv");
   const tabs = [tabSong, tabMv];
+  const mini = $("mini");
+  const miniPlay = $("mini-play");
+  const miniTitle = $("mini-title");
+  const miniLine = $("mini-line");
 
   let index = 0;
   let mode = "song"; // "song" | "mv"
@@ -162,6 +166,7 @@
   /* ---------------- 現在の曲の表示 ---------------- */
   function renderCurrent(t) {
     $("now-title").textContent = t.title;
+    miniTitle.textContent = t.title;
     const first = t.credits && t.credits[0];
     $("now-by").textContent = first ? first.role + "　" + first.name : "";
 
@@ -296,6 +301,8 @@
     const playing = !media().paused;
     playBtn.dataset.state = playing ? "playing" : "paused";
     playBtn.setAttribute("aria-label", playing ? "一時停止" : "再生");
+    miniPlay.dataset.state = playing ? "playing" : "paused";
+    miniPlay.setAttribute("aria-label", playing ? "一時停止" : "再生");
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
   }
 
@@ -303,6 +310,7 @@
     const m = media();
     const d = m.duration;
     const ratio = isFinite(d) && d > 0 ? m.currentTime / d : 0;
+    miniLine.style.width = ratio * 100 + "%";
     if (!seeking) {
       seekEl.value = Math.round(ratio * 1000);
       seekEl.style.setProperty("--p", ratio * 100 + "%");
@@ -355,6 +363,11 @@
 
   /* ---------------- 操作 ---------------- */
   playBtn.addEventListener("click", toggle);
+  miniPlay.addEventListener("click", toggle);
+  miniTitle.addEventListener("click", () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelector(".player").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  });
   $("prev").addEventListener("click", prev);
   $("next").addEventListener("click", next);
 
@@ -442,6 +455,19 @@
     const param = new URLSearchParams(location.search).get("track") || "";
     const wanted = /^\d+$/.test(param) ? param.padStart(2, "0") : param;
     loadTrack(Math.max(0, TRACKS.findIndex((t) => t.id === wanted)));
+    // 本体の再生ボタンが画面に見えないときだけ、画面下の固定バーを出す
+    // （下 80px は固定バーに隠れる領域なので、見えている扱いにしない）
+    const updateMini = () => {
+      const r = playBtn.getBoundingClientRect();
+      const visible = r.bottom > 0 && r.top < window.innerHeight - 80;
+      mini.classList.toggle("is-shown", !visible);
+    };
+    window.addEventListener("scroll", updateMini, { passive: true });
+    window.addEventListener("resize", updateMini);
+    window.addEventListener("load", updateMini);
+    document.querySelector(".stage__art").addEventListener("load", updateMini);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateMini);
+    updateMini();
   } else {
     // 曲が1つもない（フォルダが空、または file:// で開いていて読み込めない）
     $("now-title").textContent = "曲がまだ登録されていません";
@@ -455,7 +481,7 @@
   const loader = $("loader");
   const root = document.documentElement;
   if (loader) {
-    const MIN = 1400; // 最短で見せる時間
+    const MIN = 1000; // 最短で見せる時間
     const MAX = 6000; // どんなに遅くてもここで開く
     const numEl = $("loader-num");
     const litEl = $("loader-lit");
@@ -488,8 +514,8 @@
       setLit(1);
       loader.classList.add("is-leaving");
       if (reduce) return setTimeout(finish, 300);
-      setTimeout(() => loader.classList.add("is-open"), 520);
-      setTimeout(finish, 1300);
+      setTimeout(() => loader.classList.add("is-open"), 470);
+      setTimeout(finish, 1000);
     };
     const tick = (now) => {
       if (left) return;

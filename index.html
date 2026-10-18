@@ -114,6 +114,17 @@
 
 </main>
 
+<div class="mini" id="mini" role="region" aria-label="ミニプレイヤー">
+  <div class="mini__in">
+    <i class="mini__line" id="mini-line"></i>
+    <button class="mini__play" id="mini-play" type="button" aria-label="再生">
+      <svg class="play__i play__i--play" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>
+      <svg class="play__i play__i--pause" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+    </button>
+    <button class="mini__title" id="mini-title" type="button" aria-label="プレイヤーの位置へ移動"></button>
+  </div>
+</div>
+
 <audio id="audio" preload="metadata"></audio>
 
 <script src="js/config.js"></script>
