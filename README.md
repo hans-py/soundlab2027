@@ -8,23 +8,49 @@ QRコードから開く、曲とMVのページ。静的なHTML/CSS/JSだけで�
 ```
 index.html          ページ本体
 css/style.css       見た目
-js/tracks.js        サイト情報と曲データ（曲の追加・修正はここ）
+js/config.js        サイト全体の設定（サークル名、SNSのURL、曲の枠の数）
 js/app.js           プレイヤー・ロック画面操作・ローディング
-assets/audio/       mp3（現在は動作確認用のダミー電子音）
-assets/video/       MVのmp4（現在はダミー）
+tracks/01 〜 07/    曲のフォルダ（1曲目〜7曲目）。曲・MV・歌詞・担当者を入れる
 assets/img/         メインビジュアル、ロック画面用アートワーク、アイコン、OGP
 ```
 
 ## 曲を追加・差し替える
 
-1. mp3 を `assets/audio/`、MV を `assets/video/` に入れる。
-2. `js/tracks.js` の `TRACKS` に1曲ぶん追記する（既存の曲をコピーして直すのが早い）。
-   - `title` / `audio` / `video`（MVがなければ省略）/ `credits`（担当者）/ `lyrics`（歌詞）
-   - `credits` の先頭の人が、曲名の下とロック画面に出る。
-3. ダミー（`demo-*.mp3` / `demo-*.mp4`）と、`TRACKS` 内のダミー曲を消す。
-4. SNS は `SITE.links` の `url` を埋める。空のままなら「準備中」と表示される。
+曲は `tracks/01` 〜 `tracks/07` のフォルダに入れるだけです。フォルダ番号が曲の順番で、`?track=02` のURLにもなります。
+各フォルダには、次のファイルを入れます（ファイル名は半角でこの通りに）。
 
-`id` は URL に使われる（`?track=02`）。QRコードに入れたあとで変えるとリンク切れになるので注意。
+| ファイル | 中身 | 必要か |
+|---|---|---|
+| `info.txt` | 曲名。`曲名:` を空にすると、その曲は表示されない | 必須 |
+| `audio.mp3` | 曲 | 必須（ないと表示されない） |
+| `video.mp4` | MV | なくてOK（MVタブが押せなくなる） |
+| `lyrics.txt` | 歌詞 | なくてOK（歌詞の欄が消える） |
+| `credits.txt` | 作曲・イラスト・MV などの担当者 | なくてOK |
+
+`info.txt` と `credits.txt` の書き方（例）:
+
+```
+# info.txt
+曲名: 曲タイトル 01
+```
+
+```
+# credits.txt
+作曲: 担当者 A
+イラスト: 担当者 B | https://x.com/example
+MV: 担当者 C
+```
+
+- `credits.txt` は「役割: 名前」の形で、役割の名前は自由です。名前が空の行は表示されません。
+- 先頭の1行が、曲名の下とロック画面に出ます。
+- 名前の後ろに `| URL` を付けると、その人のリンクになります。
+- `info.txt` に `長さ: 3:24` を書くと、再生前から長さを表示できます。`ダウンロード: なし` を書くと、その曲のダウンロードボタンを隠せます。
+
+入れたら GitHub に push します。数分でサイトに反映されます。
+
+- 4曲目以降の枠も作ってあります。8曲以上にしたいときは、`tracks/08` などのフォルダを足し、`js/config.js` の `slots` の数を増やす。
+- 現在の 01〜03 はダミー（電子音・ダミーのMV・仮の担当者名）。実際のファイルで上書きする。
+- SNS は `js/config.js` の `links` の `url` を埋める。空のままなら「準備中」と表示される。
 
 ### 音源・MVの推奨
 
@@ -32,7 +58,7 @@ assets/img/         メインビジュアル、ロック画面用アートワー
 - MV: mp4（H.264 + AAC）、720p、`faststart` 付き、1本 10〜30MB 程度
 
 ```bash
-ffmpeg -i 元動画.mov -vf scale=1280:720 -c:v libx264 -crf 26 -preset slow -c:a aac -b:a 128k -movflags +faststart assets/video/曲名.mp4
+ffmpeg -i 元動画.mov -vf scale=1280:720 -c:v libx264 -crf 26 -preset slow -c:a aac -b:a 128k -movflags +faststart tracks/01/video.mp4
 ```
 
 GitHub Pages はファイル1つ100MBまで、サイト全体で1GB程度が目安。来場者のスマホの通信量にも響くので、MVは軽めに。

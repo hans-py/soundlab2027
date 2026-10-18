@@ -1,9 +1,85 @@
-(() => {
+(async () => {
   "use strict";
 
   const SITE = window.SITE;
-  const TRACKS = window.TRACKS;
   const $ = (id) => document.getElementById(id);
+
+  /* ---------------- 曲フォルダの読み込み ----------------
+     tracks/01 〜 tracks/07 を順に見て、info.txt に曲名があり audio.mp3 がある曲だけ拾う。
+     video.mp4 と lyrics.txt は、あれば使う。 */
+  const RESERVED = { 曲名: "title", 長さ: "duration", ダウンロード: "download" };
+
+  function parseInfo(text) {
+    const info = { credits: [] };
+    text.replace(/^﻿/, "").split(/\r?\n/).forEach((raw) => {
+      const line = raw.trim();
+      if (!line || line[0] === "#") return;
+      const m = line.match(/^([^:：]+)[:：]\s*(.*)$/);
+      if (!m) return;
+      const key = m[1].trim();
+      const val = m[2].trim();
+      if (RESERVED[key] === "title") info.title = val;
+      else if (RESERVED[key] === "duration") info.duration = val;
+      else if (RESERVED[key] === "download") info.download = !/^(なし|no|false|x|×)$/i.test(val);
+      else if (val) {
+        const parts = val.split("|").map((s) => s.trim());
+        info.credits.push({ role: key, name: parts[0], url: parts[1] || undefined });
+      }
+    });
+    return info;
+  }
+
+  async function exists(url) {
+    try {
+      return (await fetch(url, { method: "HEAD", cache: "no-cache" })).ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function readText(url) {
+    try {
+      const r = await fetch(url, { cache: "no-cache" });
+      return r.ok ? (await r.text()).replace(/^﻿/, "").trim() : "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  async function loadTracks() {
+    const ids = Array.from({ length: SITE.slots }, (_, i) => String(i + 1).padStart(2, "0"));
+    const found = await Promise.all(
+      ids.map(async (id) => {
+        const dir = "tracks/" + id + "/";
+        const text = await readText(dir + "info.txt");
+        if (!text) return null;
+        const info = parseInfo(text);
+        if (!info.title) return null; // 曲名が空の枠は使わない
+        const [hasAudio, hasVideo, lyrics, creditsText] = await Promise.all([
+          exists(dir + "audio.mp3"),
+          exists(dir + "video.mp4"),
+          readText(dir + "lyrics.txt"),
+          readText(dir + "credits.txt"),
+        ]);
+        if (!hasAudio) return null;
+        // 担当者は credits.txt が基本。info.txt に書いた「役割: 名前」も後ろに足す
+        const credits = parseInfo(creditsText).credits.concat(info.credits);
+        return {
+          id,
+          title: info.title,
+          audio: dir + "audio.mp3",
+          video: hasVideo ? dir + "video.mp4" : undefined,
+          lyrics: lyrics || undefined,
+          duration: info.duration,
+          download: info.download,
+          credits,
+        };
+      })
+    );
+    return found.filter(Boolean);
+  }
+
+  const TRACKS = await loadTracks();
 
   const audio = $("audio");
   const video = $("mv");
@@ -362,11 +438,19 @@
   }
 
   /* ---------------- 初期化 ---------------- */
-  const param = new URLSearchParams(location.search).get("track");
-  let start = TRACKS.findIndex((t) => t.id === param);
-  if (start < 0 && /^\d+$/.test(param || "")) start = Number(param) - 1;
-  if (start < 0 || start >= TRACKS.length) start = 0;
-  loadTrack(start);
+  if (TRACKS.length) {
+    // ?track=02 でも ?track=2 でも、フォルダ番号で曲を選ぶ
+    const param = new URLSearchParams(location.search).get("track") || "";
+    const wanted = /^\d+$/.test(param) ? param.padStart(2, "0") : param;
+    loadTrack(Math.max(0, TRACKS.findIndex((t) => t.id === wanted)));
+  } else {
+    // 曲が1つもない（フォルダが空、または file:// で開いていて読み込めない）
+    $("now-title").textContent = "曲がまだ登録されていません";
+    $("now-by").textContent = "tracks フォルダに曲を入れてください";
+    document.querySelectorAll(".seek, .ctrl, .tabs, .dl").forEach((n) => (n.hidden = true));
+    ["h-tracks", "h-credits"].forEach((id) => ($(id).closest(".sec").hidden = true));
+    $("sec-lyrics").hidden = true;
+  }
 
   /* ---------------- ローディング演出 ---------------- */
   const loader = $("loader");
