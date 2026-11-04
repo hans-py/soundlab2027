@@ -4,6 +4,7 @@
 window.SITE = {
   circle: "Sound.Lab.",
   event: "碧風祭2027「llllink」",
+  album: "WEAVE THE COLORS",
   copyright: "© 2027 Sound.Lab.",
   notice: "無断転載・無断使用禁止",
   // 曲のフォルダの数（tracks/01 〜 tracks/07）。8曲以上にするときは、数を増やしてフォルダを足す

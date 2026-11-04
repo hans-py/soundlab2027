@@ -62,8 +62,16 @@ ol, ul { list-style: none; padding: 0; }
 /* ---------- タイトル ---------- */
 .title { padding: 24px 16px 0; }
 .title__event { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); }
-/* ロゴは、イベント名の行と下のタブの、ちょうど真ん中（上下とも24px）に置く */
-.title__name { margin-top: 24px; line-height: 0; }
+/* アルバム名：作品名として、イベント名より一段強く、ロゴより静かに */
+.title__album {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+}
+/* ロゴ（アーティスト名）は、アルバム名の下に置く */
+.title__name { margin-top: 16px; line-height: 0; }
 .title__name img { display: block; width: 210px; max-width: 100%; height: auto; }
 
 /* ---------- プレイヤー ---------- */

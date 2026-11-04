@@ -117,6 +117,8 @@
 
   /* ---------------- 静的な部分の描画 ---------------- */
   $("event").textContent = SITE.event;
+  $("album").textContent = SITE.album || "";
+  $("album").hidden = !SITE.album;
   $("copyright").textContent = SITE.copyright;
   $("notice").textContent = SITE.notice;
 
