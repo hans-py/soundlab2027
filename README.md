@@ -1,4 +1,4 @@
-# Sound.Lab. サウンドカード（碧風祭2027「llllink」）
+# Sound.Lab. サウンドカード（碧風祭2026「llllink」）
 
 QRコードから開く、曲とMVのページ。静的なHTML/CSS/JSだけで、ビルドは不要です。
 デザインは Figma「Sound.Lab. llllink SoundCard」の **v2** に合わせています。
