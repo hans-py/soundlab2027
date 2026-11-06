@@ -12,6 +12,5 @@ window.SITE = {
   // url が空のものは「準備中」で表示される
   links: [
     { label: "X", url: "https://x.com/SUAC_Sound_Lab" },
-    { label: "Instagram", url: "" },
   ],
 };
